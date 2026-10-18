@@ -1,11 +1,19 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { BellIcon, HomeIcon, ShipWheelIcon, UsersIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getMyGroups } from "../lib/api";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ["groups"],
+    queryFn: getMyGroups,
+    enabled: !!authUser,
+  });
 
   return (
     <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
@@ -38,6 +46,17 @@ const Sidebar = () => {
           <UsersIcon className="size-5 text-base-content opacity-70" />
           <span>Friends</span>
         </Link>
+         {/*  GROUPS SECTION */}
+                  <Link
+            to="/groups"
+            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
+              currentPath === "/groups" ? "btn-active" : ""
+            }`}
+          >
+            <UsersIcon className="size-5 text-base-content opacity-70" />
+            <span>Groups</span>
+          </Link>
+
 
         <Link
           to="/notifications"
@@ -47,6 +66,16 @@ const Sidebar = () => {
         >
           <BellIcon className="size-5 text-base-content opacity-70" />
           <span>Notifications</span>
+        </Link>
+
+        <Link
+          to="/search"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
+            currentPath === "/search" ? "btn-active" : ""
+          }`}
+        >
+          <UsersIcon className="size-5 text-base-content opacity-70" />
+          <span>Search Users</span>
         </Link>
       </nav>
 

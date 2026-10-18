@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import CreateGroupModal from "../components/CreateGroupModal";
+
 import {
   getOutgoingFriendReqs,
   getRecommendedUsers,
@@ -11,7 +13,7 @@ import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-rea
 
 import { capitialize } from "../lib/utils";
 
-import FriendCard, { getLanguageFlag } from "../components/FriendCard";
+import FriendCard from "../components/FriendCard";
 import NoFriendsFound from "../components/NoFriendsFound";
 
 const HomePage = () => {
@@ -48,15 +50,25 @@ const HomePage = () => {
     }
   }, [outgoingFriendReqs]);
 
+  const [showGroupModal, setShowGroupModal] = useState(false);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="container mx-auto space-y-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Friends</h2>
-          <Link to="/notifications" className="btn btn-outline btn-sm">
-            <UsersIcon className="mr-2 size-4" />
-            Friend Requests
-          </Link>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowGroupModal(true)}
+              className="btn btn-primary btn-sm"
+            >
+              + Create Group
+            </button>
+            <Link to="/notifications" className="btn btn-outline btn-sm">
+              <UsersIcon className="mr-2 size-4" />
+              Friend Requests
+            </Link>
+          </div>
         </div>
 
         {loadingFriends ? (
@@ -123,17 +135,8 @@ const HomePage = () => {
                         </div>
                       </div>
 
-                      {/* Languages with flags */}
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="badge badge-secondary">
-                          {getLanguageFlag(user.nativeLanguage)}
-                          Native: {capitialize(user.nativeLanguage)}
-                        </span>
-                        <span className="badge badge-outline">
-                          {getLanguageFlag(user.learningLanguage)}
-                          Learning: {capitialize(user.learningLanguage)}
-                        </span>
-                      </div>
+                      
+
 
                       {user.bio && <p className="text-sm opacity-70">{user.bio}</p>}
 
@@ -165,6 +168,10 @@ const HomePage = () => {
           )}
         </section>
       </div>
+        {/* ✅ Modal rendered here */}
+        {showGroupModal && (
+          <CreateGroupModal close={() => setShowGroupModal(false)} />
+        )}
     </div>
   );
 };

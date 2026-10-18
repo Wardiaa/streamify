@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { acceptFriendRequest, getFriendRequests } from "../lib/api";
-import { BellIcon, ClockIcon, MessageSquareIcon, UserCheckIcon } from "lucide-react";
+import { acceptFriendRequest, getFriendRequests, getGroupRequests, acceptGroupRequest } from "../lib/api";
+import { BellIcon, ClockIcon, MessageSquareIcon, UserCheckIcon, UsersIcon } from "lucide-react";
 import NoNotificationsFound from "../components/NoNotificationsFound";
+
+
+
 
 const NotificationsPage = () => {
   const queryClient = useQueryClient();
@@ -11,11 +14,24 @@ const NotificationsPage = () => {
     queryFn: getFriendRequests,
   });
 
+  const { data: groupReqs = [] } = useQuery({
+    queryKey: ["groupRequests"],
+    queryFn: getGroupRequests,
+  });
+
   const { mutate: acceptRequestMutation, isPending } = useMutation({
     mutationFn: acceptFriendRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
       queryClient.invalidateQueries({ queryKey: ["friends"] });
+    },
+  });
+  const { mutate: acceptGroupMutation } = useMutation({
+    mutationFn: acceptGroupRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groupRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["myGroups"] });
+      toast.success("Group invite accepted!");
     },
   });
 
@@ -74,6 +90,37 @@ const NotificationsPage = () => {
                             Accept
                           </button>
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {groupReqs.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <UsersIcon className="h-5 w-5 text-primary" />
+                  Group Invites
+                  <span className="badge badge-primary ml-2">{groupReqs.length}</span>
+                </h2>
+                <div className="space-y-3">
+                  {groupReqs.map((req) => (
+                    <div
+                      key={req._id}
+                      className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="card-body p-4 flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold">{req.group.name}</h3>
+                          <p className="text-xs opacity-70">{req.group.description}</p>
+                        </div>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => acceptGroupMutation(req._id)}
+                        >
+                          Accept
+                        </button>
                       </div>
                     </div>
                   ))}

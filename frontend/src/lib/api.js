@@ -63,3 +63,39 @@ export async function getStreamToken() {
   const response = await axiosInstance.get("/chat/token");
   return response.data;
 }
+
+export async function searchUsers(query) {
+  const response = await axiosInstance.get(`/users/search?q=${query}`);
+  return response.data;
+}
+
+export async function createGroupChannel({ name, members }) {
+  const response = await axiosInstance.post("/chat/create-group", { name, members });
+  return response.data;
+}
+
+export async function inviteGroup(data) {
+  const res = await axiosInstance.post("/chat/invite-group", data);
+  return res.data;
+}
+export async function getMyGroups() {
+  const res = await axiosInstance.get("/chat/my-groups");
+  return res.data;
+}
+
+export async function getGroupRequests() {
+  const res = await axiosInstance.get("/chat/group-requests");
+  return res.data;
+}
+
+export async function acceptGroupRequest(requestId) {
+  const res = await axiosInstance.put(`/chat/group-request/${requestId}/accept`);
+  return res.data;
+}
+
+export async function enterGroup(channelId) {
+  const res = await axiosInstance.post(`/chat/group/${channelId}/enter`);
+  return res.data;
+}
+
+

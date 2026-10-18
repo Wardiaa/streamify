@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api";
@@ -23,6 +23,7 @@ const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 const ChatPage = () => {
   const { id: targetUserId } = useParams();
+  const location = useLocation();
 
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
@@ -33,7 +34,7 @@ const ChatPage = () => {
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
-    enabled: !!authUser, // this will run only when authUser is available
+    enabled: !!authUser,
   });
 
   useEffect(() => {
@@ -47,22 +48,23 @@ const ChatPage = () => {
 
         await client.connectUser(
           {
-            id: authUser._id,
+            id: authUser._id.toLowerCase(),
             name: authUser.fullName,
             image: authUser.profilePic,
           },
           tokenData.token
         );
 
-        //
-        const channelId = [authUser._id, targetUserId].sort().join("-");
+        // decide channel id: slug for groups, member-list for 1-on-1
+        const isGroup = location.pathname.startsWith("/group");
+        const channelId = isGroup
+          ? targetUserId // the slug
+          : [authUser._id, targetUserId].sort().join("-").toLowerCase();
 
-        // you and me
-        // if i start the chat => channelId: [myId, yourId]
-        // if you start the chat => channelId: [yourId, myId]  => [myId,yourId]
+        console.log("isGroup:", isGroup, "channelId:", channelId);
 
         const currChannel = client.channel("messaging", channelId, {
-          members: [authUser._id, targetUserId],
+          members: isGroup ? undefined : [authUser._id, targetUserId],
         });
 
         await currChannel.watch();
@@ -78,16 +80,14 @@ const ChatPage = () => {
     };
 
     initChat();
-  }, [tokenData, authUser, targetUserId]);
+  }, [tokenData, authUser, targetUserId, location.pathname]);
 
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
-
       channel.sendMessage({
         text: `I've started a video call. Join me here: ${callUrl}`,
       });
-
       toast.success("Video call link sent successfully!");
     }
   };
@@ -112,4 +112,5 @@ const ChatPage = () => {
     </div>
   );
 };
+
 export default ChatPage;
